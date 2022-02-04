@@ -13,16 +13,17 @@ function getNextId(cb) {
 }
 //http://localhost:3000/todos GET
 router.get('/', function (req, res) {
-    getFileContent(file_name, function (err, todos) {
-        if (err) throw err;
-        res.json(todos)
-    })
-});
+    getFileContent(file_name)
+        .then(data => res.json(data))
+        .catch(err => {
+            console.log(err)
+        })
+})
 
 //http://localhost:3000/todos POST
 router.post('/', function (req, res) {
-    //var todo = { ...req.body, id: getNextId() };
-    getNextId(function (err, id, todos) {
+    {/* getNextId(function (err, id, todos) {
+        
         if (err) throw err;
         var todo = { ...req.body, id: id };
         todos.push(todo)
@@ -30,7 +31,20 @@ router.post('/', function (req, res) {
             if (err) throw err;
             res.json(todo)
         })
-    });
+    }); */}
+    var _id;
+    getNextId()
+        .then(id => (_id=id))
+        .then(_=>getFileContent(file_name))
+        .then(todos => {
+            var todo = { ...req.body, id: _id };
+            todos.push(todo)
+            return writeFileContent(file_name, todos)
+        })
+        .then(data => res.json(data))
+        .catch(err => {
+            console.log(err)
+        })
 });
 
 //http://localhost:3000/todos/1 PUT
