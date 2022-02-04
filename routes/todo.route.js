@@ -3,11 +3,13 @@ var path = require('path')
 var { getFileContent, writeFileContent } = require('../utils/file.util')
 const file_name = path.join(__dirname, '..', 'db', 'todo.db.json')
 function getNextId(cb) {
-    getFileContent(file_name, function (err, todos) {
-        if (err) return cb(err)
-        return cb(null, todos.length == 0 ? 1 : todos[todos.length - 1].id + 1, todos);
-    })
-
+    getFileContent(file_name)
+        .then(parsedData => {
+            return parsedData.length === 0 ? 1 : parsedData[parsedData.length - 1].id + 1;
+        })
+        .catch(err => {
+            console.log(err)
+        })
 }
 //http://localhost:3000/todos GET
 router.get('/', function (req, res) {
@@ -36,7 +38,7 @@ router.put('/:id', function (req, res) {
     //var id=req.params.id;
     var { id } = req.params;
     var updatedObj = req.body;
-    getFileContent(file_name, function (err,todos) {
+    getFileContent(file_name, function (err, todos) {
         if (err) throw err;
         var idx = todos.findIndex(todo => todo.id == id);
         if (idx != -1) {
@@ -57,7 +59,7 @@ router.put('/:id', function (req, res) {
 router.patch('/:id', function (req, res) {
     var { id } = req.params;
     var updatedObj = req.body;
-    getFileContent(file_name, function (err,todos) {
+    getFileContent(file_name, function (err, todos) {
         if (err) throw err;
         var idx = todos.findIndex(todo => todo.id == id);
         if (idx != -1) {
