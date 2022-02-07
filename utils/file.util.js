@@ -9,9 +9,7 @@ exports.getFileContent = function (file_name) {
         })
 }
 
-exports.writeFileContent = function (file_name, data, cb) {
-    fs.writeFile(file_name, JSON.stringify(data), function (err) {
-        if (err) return cb(err, null)
-        return cb(null, 'Created');
-    })
+exports.writeFileContent = function (file_name, data) {
+    return fs.writeFile(file_name, JSON.stringify(data))
+        .then('Created')
 }

@@ -2,8 +2,8 @@ var router = require('express').Router();
 var path = require('path')
 var { getFileContent, writeFileContent } = require('../utils/file.util')
 const file_name = path.join(__dirname, '..', 'db', 'todo.db.json')
-function getNextId(cb) {
-    getFileContent(file_name)
+function getNextId() {
+    return getFileContent(file_name)
         .then(parsedData => {
             return parsedData.length === 0 ? 1 : parsedData[parsedData.length - 1].id + 1;
         })
@@ -33,9 +33,10 @@ router.post('/', function (req, res) {
         })
     }); */}
     var _id;
+    console.log("camed")
     getNextId()
-        .then(id => (_id=id))
-        .then(_=>getFileContent(file_name))
+        .then(id => (_id = id))
+        .then(_ => getFileContent(file_name))
         .then(todos => {
             var todo = { ...req.body, id: _id };
             todos.push(todo)
@@ -52,56 +53,69 @@ router.put('/:id', function (req, res) {
     //var id=req.params.id;
     var { id } = req.params;
     var updatedObj = req.body;
-    getFileContent(file_name, function (err, todos) {
-        if (err) throw err;
-        var idx = todos.findIndex(todo => todo.id == id);
-        if (idx != -1) {
-            todos[idx] = { ...updatedObj, id: id };
-            return writeFileContent(file_name, todos, function (err) {
-                if (err) throw err;
-                return res.json({ ...updatedObj, id: id });
-            })
 
-        }
-        return res.json({
-            msg: 'The given data is not there'
+    var _todos;
+    var _idx;
+    getFileContent(file_name)
+        .then(todos => (_todos = todos))
+        .then(todos => (todos.findIndex(todo => todo.id == id)))
+        .then(idx => (_idx = idx))
+        .then(idx => (idx != -1))
+        .then(isPresent => {
+            if (isPresent) {
+                _todos[_idx] = { ...updatedObj, id: id };
+                return writeFileContent(file_name, _todos)
+            }
+            return Promise.reject();
         })
-    })
+        .then(data => res.json(data))
+        .catch(err => {
+            console.log(err)
+        })
 });
 
 //http://localhost:3000/todos/1 PATCH
 router.patch('/:id', function (req, res) {
     var { id } = req.params;
     var updatedObj = req.body;
-    getFileContent(file_name, function (err, todos) {
-        if (err) throw err;
-        var idx = todos.findIndex(todo => todo.id == id);
-        if (idx != -1) {
-            todos[idx] = { ...todos[idx], ...updatedObj, id: id };
-            return writeFileContent(file_name, todos, function (err) {
-                if (err) throw err;
-                return res.json({ ...todos[idx], ...updatedObj, id: id })
-            })
-            return res.send({ ...updatedObj, id: id });
-        }
-        return res.json({
-            msg: 'The given data is not there'
+    var _todos;
+    var _idx;
+    getFileContent(file_name)
+        .then(todos => (_todos = todos))
+        .then(todos => (todos.findIndex(todo => todo.id == id)))
+        .then(idx => (_idx = idx))
+        .then(idx => (idx != -1))
+        .then(isPresent => {
+            if (isPresent) {
+                _todos[_idx] = { ..._todos[_idx], ...updatedObj, id: id };
+                return writeFileContent(file_name, _todos)
+            }
+            return Promise.reject();
         })
-    })
+        .then(data => res.json(data))
+        .catch(err => {
+            console.log(err)
+        })
 });
 
 //http://localhost:3000/todos/1 DELETE
 router.delete('/:id', function (req, res) {
     var { id } = req.params;
-    getFileContent(file_name, function (err, todos) {
+    {/* getFileContent(file_name, function (err, todos) {
         if (err) throw err;
         todos = todos.filter(todo => todo.id != id)
         writeFileContent(file_name, todos, function (err) {
             if (err) throw err;
             res.json({})
         })
-    })
-
+    }) */}
+    getFileContent(file_name)
+        .then(todos => todos.filter(todo => todo.id != id))
+        .then(newTodos => writeFileContent(file_name, newTodos))
+        .then(_ => res.json())
+        .catch(err => {
+            console.log(err)
+        })
 })
 
 module.exports = router;
