@@ -19,7 +19,6 @@ router.get('/', function (req, res) {
             console.log(err)
         })
 })
-
 //http://localhost:3000/todos POST
 router.post('/', function (req, res) {
     {/* getNextId(function (err, id, todos) {
@@ -47,7 +46,6 @@ router.post('/', function (req, res) {
             console.log(err)
         })
 });
-
 //http://localhost:3000/todos/1 PUT
 router.put('/:id', function (req, res) {
     //var id=req.params.id;
@@ -73,7 +71,6 @@ router.put('/:id', function (req, res) {
             console.log(err)
         })
 });
-
 //http://localhost:3000/todos/1 PATCH
 router.patch('/:id', function (req, res) {
     var { id } = req.params;
@@ -97,7 +94,6 @@ router.patch('/:id', function (req, res) {
             console.log(err)
         })
 });
-
 //http://localhost:3000/todos/1 DELETE
 router.delete('/:id', function (req, res) {
     var { id } = req.params;
