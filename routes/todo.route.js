@@ -44,9 +44,7 @@ router.put('/:id', async function (req, res, next) {
             var data = await writeFileContent(file_name, todos)
             return res.json(data)
         }
-        res.json({
-            msg: "id not present"
-        })
+        next(badRequest.getError(''))
     }
     catch (err) {
         next(err)
@@ -66,9 +64,7 @@ router.patch('/:id', async function (req, res, next) {
             var data = await writeFileContent(file_name, todos)
             return res.json(data)
         }
-        res.json({
-            msg: "id not present"
-        })
+        next(badRequest.getError('no todo is present'))
     }
     catch (err) {
         next(err)
