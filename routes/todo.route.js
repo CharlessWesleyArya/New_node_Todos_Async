@@ -2,100 +2,59 @@ var router = require('express').Router();
 var path = require('path')
 var { getFileContent, writeFileContent } = require('../utils/file.util')
 const file_name = path.join(__dirname, '..', 'db', 'todo.db.json')
-function getNextId() {
-    return getFileContent(file_name)
-        .then(parsedData => {
-            return parsedData.length === 0 ? 1 : parsedData[parsedData.length - 1].id + 1;
-        })
-        .catch(err => {
-            console.log(err)
-        })
+async function getNextId() {
+    var parsedData = await getFileContent(file_name)
+    return parsedData.length === 0 ? 1 : parsedData[parsedData.length - 1].id + 1;
 }
 //http://localhost:3000/todos GET
-router.get('/', function (req, res) {
-    getFileContent(file_name)
-        .then(data => res.json(data))
-        .catch(err => {
-            console.log(err)
-        })
+router.get('/', async function (req, res) {
+    var parsedData = await getFileContent(file_name)
+    res.json(parsedData)
 })
 //http://localhost:3000/todos POST
-router.post('/', function (req, res) {
-    {/* getNextId(function (err, id, todos) {
-        
-        if (err) throw err;
-        var todo = { ...req.body, id: id };
-        todos.push(todo)
-        writeFileContent(file_name, todos, function (err, data) {
-            if (err) throw err;
-            res.json(todo)
-        })
-    }); */}
-    var _id;
-    console.log("camed")
-    getNextId()
-        .then(id => (_id = id))
-        .then(_ => getFileContent(file_name))
-        .then(todos => {
-            var todo = { ...req.body, id: _id };
-            todos.push(todo)
-            return writeFileContent(file_name, todos)
-        })
-        .then(data => res.json(data))
-        .catch(err => {
-            console.log(err)
-        })
+router.post('/', async function (req, res) {
+    var id = await getNextId();
+    var todos = await getFileContent(file_name);
+    var todo = { ...req.body, id: id }
+    todos.push(todo)
+    var data = await writeFileContent(file_name, todos)
+    res.json(data)
 });
 //http://localhost:3000/todos/1 PUT
-router.put('/:id', function (req, res) {
+router.put('/:id', async function (req, res) {
     //var id=req.params.id;
     var { id } = req.params;
     var updatedObj = req.body;
+    var todos = await getFileContent(file_name);
+    var idx = todos.findIndex(todo => todo.id == id)
+    if (idx != 1) {
+        todos[idx] = { ...updatedObj, id: id }
+        var data = await writeFileContent(file_name, todos)
+        return res.json(data)
+    }
+    res.json({
+        msg: "id not present"
+    })
 
-    var _todos;
-    var _idx;
-    getFileContent(file_name)
-        .then(todos => (_todos = todos))
-        .then(todos => (todos.findIndex(todo => todo.id == id)))
-        .then(idx => (_idx = idx))
-        .then(idx => (idx != -1))
-        .then(isPresent => {
-            if (isPresent) {
-                _todos[_idx] = { ...updatedObj, id: id };
-                return writeFileContent(file_name, _todos)
-            }
-            return Promise.reject();
-        })
-        .then(data => res.json(data))
-        .catch(err => {
-            console.log(err)
-        })
+
 });
 //http://localhost:3000/todos/1 PATCH
-router.patch('/:id', function (req, res) {
+router.patch('/:id', async function (req, res) {
     var { id } = req.params;
     var updatedObj = req.body;
-    var _todos;
-    var _idx;
-    getFileContent(file_name)
-        .then(todos => (_todos = todos))
-        .then(todos => (todos.findIndex(todo => todo.id == id)))
-        .then(idx => (_idx = idx))
-        .then(idx => (idx != -1))
-        .then(isPresent => {
-            if (isPresent) {
-                _todos[_idx] = { ..._todos[_idx], ...updatedObj, id: id };
-                return writeFileContent(file_name, _todos)
-            }
-            return Promise.reject();
-        })
-        .then(data => res.json(data))
-        .catch(err => {
-            console.log(err)
-        })
+    var todos = await getFileContent(file_name);
+    var idx = todos.findIndex(todo => todo.id == id)
+    if (idx != 1) {
+        todos[idx] = { ...todos[idx], ...updatedObj, id: id }
+        var data = await writeFileContent(file_name, todos)
+        return res.json(data)
+    }
+    res.json({
+        msg: "id not present"
+    })
 });
 //http://localhost:3000/todos/1 DELETE
-router.delete('/:id', function (req, res) {
+router.delete('/:id', async function (req, res) {
     var { id } = req.params;
     {/* getFileContent(file_name, function (err, todos) {
         if (err) throw err;
@@ -105,13 +64,10 @@ router.delete('/:id', function (req, res) {
             res.json({})
         })
     }) */}
-    getFileContent(file_name)
-        .then(todos => todos.filter(todo => todo.id != id))
-        .then(newTodos => writeFileContent(file_name, newTodos))
-        .then(_ => res.json())
-        .catch(err => {
-            console.log(err)
-        })
+    var todos = await getFileContent(file_name)
+    todos => todos.filter(todo => todo.id != id)
+    await writeFileContent(file_name, todos)
+    return res.json({})
 })
 
 module.exports = router;
