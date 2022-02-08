@@ -49,8 +49,6 @@ router.put('/:id', async function (req, res, next) {
     catch (err) {
         next(err)
     }
-
-
 });
 //http://localhost:3000/todos/1 PATCH
 router.patch('/:id', async function (req, res, next) {
